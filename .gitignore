@@ -1,3 +1,17 @@
+# data dir
+data/*
+filedata/*
+logs/*
+options/*
+report/*
+/samples
+
+!options/_example.py
+
+!**/.gitkeep
+!**/readme.md
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
