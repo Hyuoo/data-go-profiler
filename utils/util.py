@@ -25,11 +25,11 @@ def column_header_n_select(text: str) -> tuple[list[str], list[list[str]]]:
             tmp = col.split(" as ")
             if len(tmp) > 2:
                 raise SystemError("한 문장에 as는 한번만 사용 가능 \"{str}\"".format(str=col))
-            col, alias = tmp
+            col, alias = map(str.strip, tmp)
         if " or " in col:
             if not alias:
                 raise SyntaxError("as 없이 or 쓸 수 없음 \"{str}\"".format(str=col))
-            key = col.split(" or ")
+            key = map(str.strip, col.split(" or "))
         
         if not key:
             key = [col]

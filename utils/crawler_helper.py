@@ -28,10 +28,10 @@ class DATA_GO:
 
     _DATA_DIR = "data/"
     _LOG_DIR = "logs/"
-    _URL_FILE = _DATA_DIR + "{org}_urls_{date}.txt"
-    _RAW_FILE = _DATA_DIR + "{org}_공공데이터_{date}.json"
-    _CSV_FILE = _DATA_DIR + "{org}_공공데이터_{date}.csv"
-    _LOG_FILE = _LOG_DIR + "{org}_공공데이터_{date}.log"
+    _URL_FILE = _DATA_DIR + "{org}_urls_{date}_{dtype}.txt"
+    _RAW_FILE = _DATA_DIR + "{org}_공공데이터_{date}_{dtype}.json"
+    _CSV_FILE = _DATA_DIR + "{org}_공공데이터_{date}_{dtype}.csv"
+    _LOG_FILE = _LOG_DIR + "{org}_공공데이터_{date}_{dtype}.log"
 
 
     def __init__(
@@ -46,9 +46,9 @@ class DATA_GO:
         self.select = SELECT
         self.date = datetime.now().strftime("%Y%m%d")
 
-        self.csv_file = self._CSV_FILE.format(org=self.org, date=self.date)
-        self.url_file = self._URL_FILE.format(org=self.org, date=self.date)
-        self.raw_file = self._RAW_FILE.format(org=self.org, date=self.date)
+        self.csv_file = self._CSV_FILE.format(org=self.org, date=self.date, dtype="_".join(self.dtype))
+        self.url_file = self._URL_FILE.format(org=self.org, date=self.date, dtype="_".join(self.dtype))
+        self.raw_file = self._RAW_FILE.format(org=self.org, date=self.date, dtype="_".join(self.dtype))
 
         self.headers, self.select_key_list = column_header_n_select(self.select)
     
@@ -58,7 +58,7 @@ class DATA_GO:
         self.logger = logging.getLogger("{}.{}".format(__class__.__qualname__, ORG))
         self.logger.setLevel(logging.INFO)
 
-        file_handler = logging.FileHandler(self._LOG_FILE.format(org=self.org, date=self.date), encoding="utf-8")
+        file_handler = logging.FileHandler(self._LOG_FILE.format(org=self.org, date=self.date, dtype="_".join(self.dtype)), encoding="utf-8")
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(logging.Formatter(LOG_FORMAT))
         self.logger.addHandler(file_handler)
@@ -69,6 +69,7 @@ class DATA_GO:
         # self.logger.addHandler(stream_handler)
 
         self.logger.debug(f"initializing [{ORG}]\tlogger [{self.logger.name}]")
+        self.option_logging()
     
     def __repr__(self):
         return f"기관명: \"{self.org}\"\tDTYPE: {self.dtype}"
@@ -76,9 +77,9 @@ class DATA_GO:
     def option_logging(self) -> None:
         self.logger.info(f"[OPTION] ORG: {self.org}")
         self.logger.info(f"[OPTION] DTYPE: {self.dtype}")
-        self.logger.info("[OPTION] COLUMN >> CONTENT")
+        self.logger.info("[OPTION] COLUMN << CONTENT")
         for k, v in zip(self.headers, self.select_key_list):
-            self.logger.info(f"{k} >> {v}")
+            self.logger.info(f"{k} << {v}")
 
 
     def get_dtype_count(self) -> str:
