@@ -1,5 +1,5 @@
 {
-    "ORG": ["기관명정확히"],
+    "ORG": ["한국공항공사"],
     "DTYPE": ["FILE", "API", "LINKED"],
     "SELECT": """
         type as 제공 형태
@@ -16,6 +16,6 @@
         제공형태
         service_url as 서비스 URL
         """,
-    "MERGE": False,  # ORG가 2개 이상 일 경우 하나의 csv파일로 합칠지 여부
-    "RUN": False,  # True 시에만 크롤링 동작
+    "MERGE": False,
+    "RUN": True,
 }

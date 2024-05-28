@@ -210,6 +210,7 @@ def get_detail_page(
         detail_url: str,
         *,
         logger: logging.Logger = None,
+        __index_counting = [0],
     ) -> dict[str]:
     """
     DATA, API 공통
@@ -220,6 +221,7 @@ def get_detail_page(
         - title: 서비스 명
         - description: 서비스 설명
         - service_url: 서비스 상세페이지의 URL
+        - service_id: 서비스 id
         - formats: 서비스 지원 포맷
         외 페이지에서 제공하는 데이터 한글 키-값
     """
@@ -229,6 +231,16 @@ def get_detail_page(
     soup = get_soup(detail_url, logger=logger)
     
     tmp = soup.select_one("#contents")
+    
+    if tmp is None:
+        # 폐기된 공공데이터일 경우
+        result["type"] = dtype
+        result["service_url"] = detail_url
+        alert_msg = re.search(r"alert\(([^\)]+)\)", str(soup)).groups()[0]
+        result["title"] = alert_msg
+        logger.info(f"({dtype}){alert_msg}")
+        return result
+    
     board = tmp.select_one("div.data-search-view")
     
     dtype = ""
@@ -239,15 +251,6 @@ def get_detail_page(
     elif "linked" in detail_url:
         dtype = "linked"
 
-    if tmp is None and board is None:
-        # 폐기된 공공데이터일 경우
-        result["type"] = dtype
-        result["service_url"] = detail_url
-        alert_msg = re.search(r"alert\(([^\)]+)\)", str(soup)).groups()[0]
-        result["title"] = alert_msg
-        logger.info(f"({dtype}){alert_msg}")
-        return result
-
     # title area
     title_area = board.select_one("div.data-set-title")
     
@@ -256,10 +259,13 @@ def get_detail_page(
     description = board.select_one(".cont").text.strip()
     result["type"] = dtype
     result["service_url"] = detail_url
+    result["service_id"] = re.search(r"\d+", detail_url).group()
     result["title"] = title
     result["formats"] = formats
     result["description"] = description
-    logger.info(f"API 서비스 명: ({dtype}){title}")
+    
+    logger.info(f"({dtype}/{result['service_id']}) 목록명: {__index_counting[0]}.{title}")
+    __index_counting[0] += 1
     logger.debug(f"지원포맷: {formats}\t설명: {description}")
     
     # data table

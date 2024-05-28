@@ -1,12 +1,13 @@
 from __future__ import annotations
 import sys
+import os
 
 if __name__ == "__main__":
-    sys.path.append(r"C:\Users\user\lhwoo\90_data_go")
+    p_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.append(p_dir)
 
 from utils import crawler
 from utils.util import *
-import os
 import traceback
 import json
 import pandas as pd

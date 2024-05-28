@@ -13,15 +13,27 @@
 |`RUN`|`bool`|0|`False`|해당 옵션파일 실행 여부|`True`|
 
 
+## SELECT
+
+"데이터 상세"페이지의 데이터 정보에 있는 테이블 속성 명을 그대로 입력하면 해당 내용을 수집함. <br>ex) `파일데이터명`, `분류체계`, `누적 다운로드(바로가기) * 주기성 데이터 포함`
+
+> 가능한 기능 문자 : `or`, `as`
+
+- `as` : `A as B` 형태로 사용하며, 수집한 A의 값을 csv파일에서 B컬럼에 저장함.
+- `or` : `A or B as C` 형태로 사용하며, AB중 먼저 있는 항목이 수집되고 C컬럼에 저장됨. <br>(`or`사용 시, `as`를 필수로 사용해야 함.)
+    - *A or B or C == collase(A, B, C)*
+
+
 #### *SELECT 기본항목
 
-항목에서 상세페이지의 테이블 외 수집 데이터
+항목에서 상세페이지의 테이블 외 기본 수집 데이터
 ```
-# utils.crawler.get_detail_page
+# 참고: utils.crawler.get_detail_page
 type         서비스 타입 ("filedata" | "openapi" | "linked")
 title        서비스 명
 description  서비스 설명
 service_url  서비스 상세페이지의 URL
+service_id   서비스 id (URL에서 숫자부분)
 formats      서비스 지원 포맷
 ```
 
