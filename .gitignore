@@ -1,12 +1,15 @@
 # data dir
+raw_data/*
 data/*
 filedata/*
-logs/*
-options/*
 report/*
+
+options/*
+logs/*
+
 /samples
 
-!options/_example.py
+!options/_*.py
 
 !**/.gitkeep
 !**/readme.md

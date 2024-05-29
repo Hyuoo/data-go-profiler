@@ -1,12 +1,13 @@
 from __future__ import annotations
 import sys
+import os
 
 if __name__ == "__main__":
-    sys.path.append(r"C:\Users\user\lhwoo\90_data_go")
+    p_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    sys.path.append(p_dir)
 
-from utils import crawler
-from utils.util import *
-import os
+from src import crawler
+from src.util import *
 import traceback
 import json
 import pandas as pd
@@ -26,10 +27,12 @@ logging.basicConfig(
 class DATA_GO:
     exist_obj_list = []
 
+    _RAW_DATA_DIR = "raw_data/"
     _DATA_DIR = "data/"
     _LOG_DIR = "logs/"
-    _URL_FILE = _DATA_DIR + "{org}_urls_{date}_{dtype}.txt"
-    _RAW_FILE = _DATA_DIR + "{org}_공공데이터_{date}_{dtype}.json"
+    
+    _URL_FILE = _RAW_DATA_DIR + "{org}_urls_{date}_{dtype}.txt"
+    _RAW_FILE = _RAW_DATA_DIR + "{org}_공공데이터_{date}_{dtype}.json"
     _CSV_FILE = _DATA_DIR + "{org}_공공데이터_{date}_{dtype}.csv"
     _LOG_FILE = _LOG_DIR + "{org}_공공데이터_{date}_{dtype}.log"
 
@@ -98,20 +101,22 @@ class DATA_GO:
             self.dtype_count[dtype] = dtype_count
             ret += f"{dtype}: {dtype_count}건({page_count}페이지)\t"
         
-        self.logger.info(ret)
         return ret
     
-    def crawl_n_save_urls(self):
+    def crawl_n_save_urls(self) -> None:
         """
         ORG의 모든 DTYPE에 대하여 모든 서비스의 url을 txt로 저장.
         ["데이터(서비스)명", "상세링크_URL", "조회수"]를 줄 단위로 저장함.
         (sep="\t")
 
-        file >> "{DATA_DIR}{org}_urls.txt"
+        _URL_FILE 파일이 생성됨
         """
         if os.path.exists(self.url_file):
             msg = f'already exists "{self.url_file}"'
             raise FileExistsError(msg)
+        
+        if not all(map(lambda x:self.page_count[x], self.dtype)):
+            self.get_dtype_count()
 
         f = open(self.url_file, "w", encoding="utf-8")
 
@@ -120,7 +125,7 @@ class DATA_GO:
 
             for page_number in range(1, self.page_count[dtype]+1):
                 self.logger.info(f"[{dtype}]page_processing: {page_number}/{self.page_count[dtype]}.")
-                records = crawler.get_list_one_page(org=self.org, dtype=dtype, page_number=page_number, logger=self.logger)
+                records = crawler.get_page_list(org=self.org, dtype=dtype, page_number=page_number, logger=self.logger)
                 
                 for r in records:
                     r_name = r.get("데이터명", "")
@@ -130,9 +135,9 @@ class DATA_GO:
         
         f.close()
 
-    def read_urls(self):
+    def read_urls(self) -> list[list[str, str]]:
         """
-        self.url_file을 읽어서 필요한 url, views만 가져와 중첩 리스트로 반환
+        _URL_FILE을 읽어서 url, views만 가져와 중첩 리스트로 반환
         """
         if not os.path.exists(self.url_file):
             msg = f'not exists "{self.url_file}"'
@@ -153,21 +158,27 @@ class DATA_GO:
         with open(self.raw_file, "w") as f:
             json.dump(raw_data, f)
     
-    def crawl_detail_pages(self, urls):
+    def crawl_detail_pages(self, urls, views=None) -> list[list[str]]:
         """
         urls: [[url, views], ...]
-        상세 페이지의 정보와 조회수를 합쳐서 아래 데이터를 생성함
-        - raw_data: 딕셔너리 그대로의 json파일
-        - data: 필요한 컬럼만 뽑은 csv를 만들기 위한 레코드 집합
+        페이지목록의 조회수와 상세페이지의 데이터를 합쳐서 리스트로 반환함.
+        
+        - _RAW_FILE: 딕셔너리 그대로의 json파일 생성 (보존용)
+        
+        :return: option의 SELECT쿼리에 정의된 컬럼만 저장된 리스트
+        :rtype: list[list[str]]
         """
+        if views is None:
+            views = [0 for _ in range(len(urls))]
+
         raw_data = []
         data = []
 
-        for url, views in urls:
+        for url, view in zip(urls, views):
             record = []
             try:
                 result = crawler.get_detail_page(url, logger=self.logger)
-                result["조회수"] = views
+                result["조회수"] = view
                 raw_data.append(result)
                 # pprint(result)
                 for select in self.select_key_list:
@@ -243,31 +254,48 @@ class DATA_GO:
 
         return option
 
-    @staticmethod
-    def merge_csv(file_list):
-        dfs = []
-        orgs = []
-        for file in file_list:
-            org = file.split("/")[-1].split("\\")[-1].split("_")[0]
-            tmp = pd.read_csv(file)
-            tmp["org"] = org
-            orgs.append(org)
-            dfs.append(tmp)
+def merge_csv(file_list, merge_name=None):
+    dfs = []
+    orgs = []
+    for file in file_list:
+        org = file.split("/")[-1].split("\\")[-1].split("_")[0]
+        tmp = pd.read_csv(file)
+        tmp["org"] = org
+        orgs.append(org)
+        dfs.append(tmp)
 
-        output_file = DATA_GO._DATA_DIR + f"merged_{orgs[0]}_공공데이터.csv"
-        all_df = pd.concat([*dfs])
-        all_df["org"] = pd.Categorical(all_df["org"], categories=orgs)
-        all_df.to_csv(output_file, index=False)
-        
-        return output_file
+    if merge_name is None:
+        merge_name = orgs[0]
+    
+    date = datetime.now().strftime("%Y%m%d")
+    output_file = DATA_GO._DATA_DIR + f"merged_{merge_name}_공공데이터_{date}.csv"
+
+    all_df = pd.concat([*dfs])
+    all_df["org"] = pd.Categorical(all_df["org"], categories=orgs)
+    all_df.to_csv(output_file, index=False)
+    
+    return output_file
 
 
 def block_function(option_arg: any):
     """
     일괄실행 함수
-    - 옵션파일 or read_option()의 딕셔너리 입력하여 실행
+    - 옵션파일 또는 read_option()을 통해 실행
 
     옵션 -> urls생성 -> 상세페이지 수집 -> csv 저장 -> 통합
+
+    -- 대충 전체 흐름 --
+    0. call block_function(option)
+    1. obj = DATA_GO(option)
+    2. obj.get_dtype_count() -> crawler.get_page_count()
+    3. obj.crawl_n_save_urls() -> crawler.get_page_list()
+        3-1. urls.txt 생성
+    4. obj.read_urls() -> obj.crawl_detail_pages -> crawler.get_detail_page()
+        4-1. raw_data.json 생성
+    5. obj.save_to_csv
+        5-1. data.csv 생성
+    (6.) if MERGE: merge_csv()
+        (6-1.) MERGED.csv 생성
     """
     option = None
     if isinstance(option_arg, str):
@@ -302,7 +330,8 @@ def block_function(option_arg: any):
             continue
 
         print("START OPTION:", obj.org)
-        obj.get_dtype_count()
+        tmp = obj.get_dtype_count()
+        obj.log_print(tmp)
         # print(obj.page_count)
         # print(obj.dtype_count)
 
@@ -311,13 +340,14 @@ def block_function(option_arg: any):
         except Exception as e:
             print(e)
 
-        # urls: [[url, views], ...]
-        urls = obj.read_urls()
-        if obj.save_to_csv(obj.crawl_detail_pages(urls=urls)) == 0:
+        urls, views = zip(*obj.read_urls())
+        if obj.save_to_csv(obj.crawl_detail_pages(urls=urls, views=views)) == 0:
             output_file_list.append(obj.csv_file)
     
     if option["MERGE"] and len(output_file_list) > 1:
-        tmp = DATA_GO.merge_csv(output_file_list)
+        print(f"progress MERGING.. {output_file_list}")
+        tmp = merge_csv(output_file_list, rm_char(option.get("MERGE_NAME", None)))
+        print(f"merged into \"{tmp}\"")
         output_file_list.append(tmp)
     
     return output_file_list
