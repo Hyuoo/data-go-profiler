@@ -1,8 +1,11 @@
 # data-go-profiler
 
 각 기관의 공공데이터 현황을 파악하기 위한 레포지토리.
+공공데이터 포털의 데이터 현황을 크롤링하여 csv파일로 저장합니다.
 
-- 공공데이터 포털의 데이터 현황 크롤링, 제공파일 다운로드 및 간단한 분석 생성
+## Quick start
+
+`main.py` 실행
 
 
 ### 필요 기능
@@ -29,11 +32,23 @@
 실행 시 다음과 같은 파일이 생성됨.
 - `ORG`당 1개의 파일 세트
     <br>date는 `%Y%m%d`형식
-    - `data/{ORG}_urls_{date}.txt`
-    - `data/{ORG}_공공데이터_{date}.json`
+    - `raw_data/{ORG}_urls_{date}.txt`
+    - `raw_data/{ORG}_공공데이터_{date}.json`
     - `data/{ORG}_공공데이터_{date}.csv`
     - `logs/{ORG}_공공데이터_{date}.log`
     
+## 디렉토리 설명
+
+|디렉토리|설명|
+|-|-|
+|data|공공데이터 현황 csv파일 저장|
+|filedata|각 서비스별 첨부파일이 저장|
+|logs|실행 로그 파일|
+|options|실행옵션 파일|
+|report|분석 결과|
+|raw_data|수집 중 발생한 urls.txt 및 json파일|
+|src|크롤링 코드|
+
 
 ## 개선사항
 
