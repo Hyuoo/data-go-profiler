@@ -29,7 +29,7 @@ def column_header_n_select(text: str) -> tuple[list[str], list[list[str]]]:
         if " or " in col:
             if not alias:
                 raise SyntaxError("as 없이 or 쓸 수 없음 \"{str}\"".format(str=col))
-            key = map(str.strip, col.split(" or "))
+            key = list(map(str.strip, col.split(" or ")))
         
         if not key:
             key = [col]
