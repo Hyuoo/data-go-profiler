@@ -5,7 +5,12 @@
 
 ## Quick start
 
-`main.py` 실행
+```
+git clone https://github.com/Hyuoo/data-go-profiler.git
+
+cd data-go-profiler
+python datagov.py
+```
 
 
 ### 필요 기능
@@ -27,7 +32,7 @@
 
 ## 사용방법
 
-`/get_data_portal.py` 파일을 참고하여, `options/` 디렉토리 내의 설정파일을 베이스로 각 크롤링 작업을 실행함.
+`/main.py` 파일을 참고하여, `options/` 디렉토리 내의 설정파일을 베이스로 각 크롤링 작업을 실행함.
 
 실행 시 다음과 같은 파일이 생성됨.
 - `ORG`당 1개의 파일 세트
@@ -54,6 +59,7 @@
 
 - (2024.05.28) 생성되는 파일명에 DTYPE항목 명시
 - (2024.05.28) 로그에 상세페이지 인덱스 추가
+- (2024.05.29) 불필요한 함수 제거, 주석 보충, 자잘한 기능 변경
 
 ### TODO
 
@@ -61,4 +67,6 @@
 - [x] 생성되는 파일명에 DTYPE항목 명시
 - [ ] SELECT 쿼리에서 이미 생성한 두 컬럼을 조합하여 파생컬럼을 생성하기
     - ex) 활용도 = 다운로드수/조회수*100
-
+- [ ] MERGE 실행 시 index 초기화하기
+- [ ] MERGE 실행 시 org 컬럼 앞으로 위치하게 하기
+- [ ] cli argument에 ORG를 직접입력하여 수집 실행

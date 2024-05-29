@@ -60,6 +60,15 @@ def integrate_csv_to_excel(csv_files: list[str], target: str = None):
             df.to_excel(writer, sheet_name=file_name, index=False)
 
 
+def rm_char(string):
+    # windows 파일명으로 사용 할 수 없는 문자 제거
+    for c in "\n\r\\/:*?\"<>|":
+        string = string.replace(c, "")
+    string = string.replace("&", "+")
+    return string
+
+
+
 if __name__ == "__main__":
     # files = [
     #     "report\\데이터 업데이트 주기.csv",
