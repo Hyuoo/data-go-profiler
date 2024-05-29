@@ -240,18 +240,6 @@ def get_detail_page(
     
     tmp = soup.select_one("#contents")
     
-    if tmp is None:
-        # 폐기된 공공데이터일 경우
-        result["type"] = dtype
-        result["service_url"] = detail_url
-        alert_msg = re.search(r"alert\(([^\)]+)\)", str(soup)).groups()[0]
-        result["title"] = alert_msg
-        logger.info(f"({dtype}){alert_msg}")
-        return result
-    
-    # board: 본문 영역
-    board = tmp.select_one("div.data-search-view")
-    
     # url에서 검색 dtype 추출
     dtype = ""
     if "fileData" in detail_url:
@@ -261,6 +249,17 @@ def get_detail_page(
     elif "linked" in detail_url:
         dtype = "linked"
 
+    if tmp is None:
+        # 폐기된 공공데이터일 경우
+        result["type"] = dtype
+        result["service_url"] = detail_url
+        alert_msg = re.search(r"alert\(([^\)]+)\)", str(soup)).groups()[0]
+        result["title"] = alert_msg
+        logger.info(f"({dtype}){alert_msg}")
+        return result
+    
+    # 본문 영역
+    board = tmp.select_one("div.data-search-view")
     # title area
     title_area = board.select_one("div.data-set-title")
     
