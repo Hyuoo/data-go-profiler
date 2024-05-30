@@ -1,5 +1,5 @@
 {
-    "ORG": ["한국공항공사"],
+    "ORG": ["한국직업능력연구원"],
     "DTYPE": ["FILE", "API", "LINKED"],
     "SELECT": """
         type as 제공 형태
