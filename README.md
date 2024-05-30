@@ -7,8 +7,8 @@
 
 ```
 git clone https://github.com/Hyuoo/data-go-profiler.git
-
 cd data-go-profiler
+pip install -r requirements.txt
 python datagov.py
 ```
 
